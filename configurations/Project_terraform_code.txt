@@ -1,0 +1,1540 @@
+Welcome to Ubuntu 22.04.3 LTS (GNU/Linux 5.15.146.1-microsoft-standard-WSL2 x86_64)
+
+ * Documentation:  https://help.ubuntu.com
+ * Management:     https://landscape.canonical.com
+ * Support:        https://ubuntu.com/advantage
+
+ * Strictly confined Kubernetes makes edge and IoT secure. Learn how MicroK8s
+   just raised the bar for easy, resilient and secure K8s cluster deployment.
+
+   https://ubuntu.com/engage/secure-kubernetes-at-the-edge
+
+This message is shown once a day. To disable it please create the
+/home/jeril/.hushlogin file.
+jeril@JKB-HACKBOX:/mnt/c/Users/jeril$ gcloud auth login
+Your browser has been opened to visit:
+
+    https://accounts.google.com/o/oauth2/auth?response_type=code&client_id=32555940559.apps.googleusercontent.com&redirect_uri=http%3A%2F%2Flocalhost%3A8085%2F&scope=openid+https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fuserinfo.email+https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fcloud-platform+https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fappengine.admin+https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fsqlservice.login+https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fcompute+https%3A%2F%2Fwww.googleapis.com%2Fauth%2Faccounts.reauth&state=awbxcdw8iEwluJv7hslnVMzRQQMXtE&access_type=offline&code_challenge=Kl-WmIXniIyOfKPre6rfjj_e-LcGMur2o4VbjWCU5AQ&code_challenge_method=S256
+
+^C
+
+Command killed by keyboard interrupt
+
+
+jeril@JKB-HACKBOX:/mnt/c/Users/jeril$ gcloud auth login
+Your browser has been opened to visit:
+
+    https://accounts.google.com/o/oauth2/auth?response_type=code&client_id=32555940559.apps.googleusercontent.com&redirect_uri=http%3A%2F%2Flocalhost%3A8085%2F&scope=openid+https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fuserinfo.email+https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fcloud-platform+https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fappengine.admin+https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fsqlservice.login+https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fcompute+https%3A%2F%2Fwww.googleapis.com%2Fauth%2Faccounts.reauth&state=3HOsBUIcSai4mh4HDfnb4FGCu7rYSu&access_type=offline&code_challenge=oDu2J2LIUn80Ok1MQC5hjpTWgPqpKBHdtAiGFeCaJ4E&code_challenge_method=S256
+
+
+You are now logged in as [jancybestin@gmail.com].
+Your current project is [spheric-rhythm-414505].  You can change this setting by running:
+  $ gcloud config set project PROJECT_ID
+jeril@JKB-HACKBOX:/mnt/c/Users/jeril$ gcloud beta resource-config bulk-export --resource-format=terraform
+API [cloudasset.googleapis.com] is required to continue, but is not enabled on project [spheric-rhythm-414505]. Would
+you like to enable and retry (this will take a few minutes)? (y/N)?  y
+
+Enabling service [cloudasset.googleapis.com] on project [spheric-rhythm-414505]...
+Operation "operations/acat.p2-634810184515-bedb9237-f9b0-4ddc-8e09-bcbf4e7d9010" finished successfully.
+
+Exporting resource configurations to stdout...
+resource "google_artifact_registry_repository" "gcf_artifacts" {
+  description = "This repository is created and used by Cloud Functions for storing function docker images."
+  format      = "DOCKER"
+  labels = {
+    goog-managed-by = "cloudfunctions"
+  }
+  location      = "us-west2"
+  project       = "spheric-rhythm-414505"
+  repository_id = "gcf-artifacts"
+}
+# terraform import google_artifact_registry_repository.gcf_artifacts projects/spheric-rhythm-414505/locations/us-west2/repositories/gcf-artifacts
+resource "google_artifact_registry_repository" "transcode_registry_image" {
+  format        = "DOCKER"
+  location      = "us-west2"
+  project       = "spheric-rhythm-414505"
+  repository_id = "transcode-registry-image"
+}
+# terraform import google_artifact_registry_repository.transcode_registry_image projects/spheric-rhythm-414505/locations/us-west2/repositories/transcode-registry-image
+resource "google_project" "spheric_rhythm_414505" {
+  auto_create_network = true
+  billing_account     = "018FBA-0B293B-F928B7"
+  name                = "My First Project"
+  project_id          = "spheric-rhythm-414505"
+}
+# terraform import google_project.spheric_rhythm_414505 projects/spheric-rhythm-414505
+resource "google_compute_backend_service" "serverfull_backend_service" {
+  cdn_policy {
+    cache_key_policy {
+      include_host         = true
+      include_protocol     = true
+      include_query_string = true
+    }
+    cache_mode                   = "CACHE_ALL_STATIC"
+    client_ttl                   = 3600
+    default_ttl                  = 3600
+    max_ttl                      = 86400
+    signed_url_cache_max_age_sec = 0
+  }
+  connection_draining_timeout_sec = 300
+  health_checks                   = ["https://www.googleapis.com/compute/v1/projects/spheric-rhythm-414505/global/healthChecks/default"]
+  load_balancing_scheme           = "EXTERNAL_MANAGED"
+  locality_lb_policy              = "ROUND_ROBIN"
+  log_config {
+    enable      = true
+    sample_rate = 1
+  }
+  name             = "serverfull-backend-service"
+  port_name        = "http-app"
+  project          = "spheric-rhythm-414505"
+  protocol         = "HTTP"
+  security_policy  = "https://www.googleapis.com/compute/beta/projects/spheric-rhythm-414505/global/securityPolicies/default-security-policy-for-backend"
+  session_affinity = "NONE"
+  timeout_sec      = 3000
+}
+# terraform import google_compute_backend_service.serverfull_backend_service projects/spheric-rhythm-414505/global/backendServices/serverfull-backend-service
+resource "google_compute_disk" "transcoder_serverfull" {
+  image                     = "https://www.googleapis.com/compute/beta/projects/ubuntu-os-cloud/global/images/ubuntu-2204-jammy-v20231213a"
+  name                      = "transcoder-serverfull"
+  physical_block_size_bytes = 4096
+  project                   = "spheric-rhythm-414505"
+  size                      = 10
+  type                      = "pd-balanced"
+  zone                      = "us-west2-a"
+}
+# terraform import google_compute_disk.transcoder_serverfull projects/spheric-rhythm-414505/zones/us-west2-a/disks/transcoder-serverfull
+resource "google_compute_address" "transcoder_serverfull" {
+  address      = "34.94.133.247"
+  address_type = "EXTERNAL"
+  description  = "transcoder-serverfull"
+  name         = "transcoder-serverfull"
+  network_tier = "PREMIUM"
+  project      = "spheric-rhythm-414505"
+  region       = "us-west2"
+}
+# terraform import google_compute_address.transcoder_serverfull projects/spheric-rhythm-414505/regions/us-west2/addresses/transcoder-serverfull
+resource "google_compute_disk" "transcoder_disk_from_snapshot" {
+  name                      = "transcoder-disk-from-snapshot"
+  physical_block_size_bytes = 4096
+  project                   = "spheric-rhythm-414505"
+  provisioned_iops          = 3060
+  size                      = 10
+  snapshot                  = "https://www.googleapis.com/compute/v1/projects/spheric-rhythm-414505/global/snapshots/transcoder-container-auto-start"
+  type                      = "hyperdisk-balanced"
+  zone                      = "us-west2-a"
+}
+# terraform import google_compute_disk.transcoder_disk_from_snapshot projects/spheric-rhythm-414505/zones/us-west2-a/disks/transcoder-disk-from-snapshot
+resource "google_compute_disk" "instance_20240407_013854" {
+  image                     = "https://www.googleapis.com/compute/beta/projects/ubuntu-os-cloud/global/images/ubuntu-2204-jammy-v20240319"
+  name                      = "instance-20240407-013854"
+  physical_block_size_bytes = 4096
+  project                   = "spheric-rhythm-414505"
+  size                      = 10
+  type                      = "pd-balanced"
+  zone                      = "us-west1-b"
+}
+# terraform import google_compute_disk.instance_20240407_013854 projects/spheric-rhythm-414505/zones/us-west1-b/disks/instance-20240407-013854
+resource "google_compute_disk" "transcoder_serverfull_vmgroup_mvss" {
+  image                     = "https://www.googleapis.com/compute/beta/projects/spheric-rhythm-414505/global/images/transcoder-clone-boot-image"
+  name                      = "transcoder-serverfull-vmgroup-mvss"
+  physical_block_size_bytes = 4096
+  project                   = "spheric-rhythm-414505"
+  size                      = 10
+  type                      = "pd-standard"
+  zone                      = "us-west2-a"
+}
+# terraform import google_compute_disk.transcoder_serverfull_vmgroup_mvss projects/spheric-rhythm-414505/zones/us-west2-a/disks/transcoder-serverfull-vmgroup-mvss
+resource "google_compute_disk" "transcoder_serverfull_vmgroup_n0bs" {
+  image                     = "https://www.googleapis.com/compute/beta/projects/spheric-rhythm-414505/global/images/transcoder-clone-boot-image"
+  name                      = "transcoder-serverfull-vmgroup-n0bs"
+  physical_block_size_bytes = 4096
+  project                   = "spheric-rhythm-414505"
+  size                      = 10
+  type                      = "pd-standard"
+  zone                      = "us-west2-a"
+}
+# terraform import google_compute_disk.transcoder_serverfull_vmgroup_n0bs projects/spheric-rhythm-414505/zones/us-west2-a/disks/transcoder-serverfull-vmgroup-n0bs
+resource "google_compute_firewall" "default_allow_http" {
+  allow {
+    ports    = ["80"]
+    protocol = "tcp"
+  }
+  direction     = "INGRESS"
+  name          = "default-allow-http"
+  network       = "https://www.googleapis.com/compute/v1/projects/spheric-rhythm-414505/global/networks/default"
+  priority      = 1000
+  project       = "spheric-rhythm-414505"
+  source_ranges = ["0.0.0.0/0"]
+  target_tags   = ["http-server"]
+}
+# terraform import google_compute_firewall.default_allow_http projects/spheric-rhythm-414505/global/firewalls/default-allow-http
+resource "google_compute_firewall" "default_allow_icmp" {
+  allow {
+    protocol = "icmp"
+  }
+  description   = "Allow ICMP from anywhere"
+  direction     = "INGRESS"
+  name          = "default-allow-icmp"
+  network       = "https://www.googleapis.com/compute/v1/projects/spheric-rhythm-414505/global/networks/default"
+  priority      = 65534
+  project       = "spheric-rhythm-414505"
+  source_ranges = ["0.0.0.0/0"]
+}
+# terraform import google_compute_firewall.default_allow_icmp projects/spheric-rhythm-414505/global/firewalls/default-allow-icmp
+resource "google_compute_firewall" "default_allow_https" {
+  allow {
+    ports    = ["443"]
+    protocol = "tcp"
+  }
+  direction     = "INGRESS"
+  name          = "default-allow-https"
+  network       = "https://www.googleapis.com/compute/v1/projects/spheric-rhythm-414505/global/networks/default"
+  priority      = 1000
+  project       = "spheric-rhythm-414505"
+  source_ranges = ["0.0.0.0/0"]
+  target_tags   = ["https-server"]
+}
+# terraform import google_compute_firewall.default_allow_https projects/spheric-rhythm-414505/global/firewalls/default-allow-https
+resource "google_compute_disk" "transcoder_serverfull_vmgroup_dj1p" {
+  image                     = "https://www.googleapis.com/compute/beta/projects/spheric-rhythm-414505/global/images/transcoder-clone-boot-image"
+  name                      = "transcoder-serverfull-vmgroup-dj1p"
+  physical_block_size_bytes = 4096
+  project                   = "spheric-rhythm-414505"
+  size                      = 10
+  type                      = "pd-standard"
+  zone                      = "us-west2-a"
+}
+# terraform import google_compute_disk.transcoder_serverfull_vmgroup_dj1p projects/spheric-rhythm-414505/zones/us-west2-a/disks/transcoder-serverfull-vmgroup-dj1p
+resource "google_compute_firewall" "default_allow_internal" {
+  allow {
+    ports    = ["0-65535"]
+    protocol = "tcp"
+  }
+  allow {
+    ports    = ["0-65535"]
+    protocol = "udp"
+  }
+  allow {
+    protocol = "icmp"
+  }
+  description   = "Allow internal traffic on the default network"
+  direction     = "INGRESS"
+  name          = "default-allow-internal"
+  network       = "https://www.googleapis.com/compute/v1/projects/spheric-rhythm-414505/global/networks/default"
+  priority      = 65534
+  project       = "spheric-rhythm-414505"
+  source_ranges = ["10.128.0.0/9"]
+}
+# terraform import google_compute_firewall.default_allow_internal projects/spheric-rhythm-414505/global/firewalls/default-allow-internal
+resource "google_compute_firewall" "default_allow_rdp" {
+  allow {
+    ports    = ["3389"]
+    protocol = "tcp"
+  }
+  description   = "Allow RDP from anywhere"
+  direction     = "INGRESS"
+  name          = "default-allow-rdp"
+  network       = "https://www.googleapis.com/compute/v1/projects/spheric-rhythm-414505/global/networks/default"
+  priority      = 65534
+  project       = "spheric-rhythm-414505"
+  source_ranges = ["0.0.0.0/0"]
+}
+# terraform import google_compute_firewall.default_allow_rdp projects/spheric-rhythm-414505/global/firewalls/default-allow-rdp
+resource "google_compute_global_forwarding_rule" "transcoder_serverfull_loadbalancer_2" {
+  ip_address            = "34.36.30.26"
+  ip_protocol           = "TCP"
+  ip_version            = "IPV4"
+  load_balancing_scheme = "EXTERNAL_MANAGED"
+  name                  = "transcoder-serverfull-loadbalancer-2"
+  port_range            = "80-80"
+  project               = "spheric-rhythm-414505"
+  target                = "https://www.googleapis.com/compute/beta/projects/spheric-rhythm-414505/global/targetHttpProxies/transcoder-serverfull-loadba-2-target-proxy"
+}
+# terraform import google_compute_global_forwarding_rule.transcoder_serverfull_loadbalancer_2 projects/spheric-rhythm-414505/global/forwardingRules/transcoder-serverfull-loadbalancer-2
+resource "google_compute_health_check" "default" {
+  check_interval_sec = 5
+  healthy_threshold  = 2
+  name               = "default"
+  project            = "spheric-rhythm-414505"
+  tcp_health_check {
+    port         = 80
+    proxy_header = "NONE"
+  }
+  timeout_sec         = 5
+  unhealthy_threshold = 2
+}
+# terraform import google_compute_health_check.default projects/spheric-rhythm-414505/global/healthChecks/default
+resource "google_compute_global_address" "serverfull_static" {
+  address      = "34.36.175.111"
+  address_type = "EXTERNAL"
+  ip_version   = "IPV4"
+  name         = "serverfull-static"
+  project      = "spheric-rhythm-414505"
+}
+# terraform import google_compute_global_address.serverfull_static projects/spheric-rhythm-414505/global/addresses/serverfull-static
+resource "google_compute_region_health_check" "serverfull_group_health_check" {
+  check_interval_sec = 10
+  healthy_threshold  = 2
+  name               = "serverfull-group-health-check"
+  project            = "spheric-rhythm-414505"
+  region             = "us-west2"
+  tcp_health_check {
+    port         = 80
+    proxy_header = "NONE"
+  }
+  timeout_sec         = 10
+  unhealthy_threshold = 6
+}
+# terraform import google_compute_region_health_check.serverfull_group_health_check projects/spheric-rhythm-414505/regions/us-west2/healthChecks/serverfull-group-health-check
+resource "google_compute_disk" "transcoder_serverfull_vmgroup_0lf0" {
+  image                     = "https://www.googleapis.com/compute/beta/projects/spheric-rhythm-414505/global/images/transcoder-clone-boot-image"
+  name                      = "transcoder-serverfull-vmgroup-0lf0"
+  physical_block_size_bytes = 4096
+  project                   = "spheric-rhythm-414505"
+  size                      = 10
+  type                      = "pd-standard"
+  zone                      = "us-west2-a"
+}
+# terraform import google_compute_disk.transcoder_serverfull_vmgroup_0lf0 projects/spheric-rhythm-414505/zones/us-west2-a/disks/transcoder-serverfull-vmgroup-0lf0
+resource "google_compute_disk" "transcoder_serverfull_vmgroup_2k0c" {
+  image                     = "https://www.googleapis.com/compute/beta/projects/spheric-rhythm-414505/global/images/transcoder-clone-boot-image"
+  name                      = "transcoder-serverfull-vmgroup-2k0c"
+  physical_block_size_bytes = 4096
+  project                   = "spheric-rhythm-414505"
+  size                      = 10
+  type                      = "pd-standard"
+  zone                      = "us-west2-a"
+}
+# terraform import google_compute_disk.transcoder_serverfull_vmgroup_2k0c projects/spheric-rhythm-414505/zones/us-west2-a/disks/transcoder-serverfull-vmgroup-2k0c
+resource "google_compute_disk" "transcoder_serverfull_vmgroup_hk1q" {
+  image                     = "https://www.googleapis.com/compute/beta/projects/spheric-rhythm-414505/global/images/transcoder-clone-boot-image"
+  name                      = "transcoder-serverfull-vmgroup-hk1q"
+  physical_block_size_bytes = 4096
+  project                   = "spheric-rhythm-414505"
+  size                      = 10
+  type                      = "pd-standard"
+  zone                      = "us-west2-a"
+}
+# terraform import google_compute_disk.transcoder_serverfull_vmgroup_hk1q projects/spheric-rhythm-414505/zones/us-west2-a/disks/transcoder-serverfull-vmgroup-hk1q
+resource "google_compute_health_check" "health_8080" {
+  check_interval_sec = 5
+  healthy_threshold  = 2
+  name               = "health-8080"
+  project            = "spheric-rhythm-414505"
+  tcp_health_check {
+    port         = 8080
+    proxy_header = "NONE"
+  }
+  timeout_sec         = 5
+  unhealthy_threshold = 2
+}
+# terraform import google_compute_health_check.health_8080 projects/spheric-rhythm-414505/global/healthChecks/health-8080
+resource "google_compute_global_forwarding_rule" "app" {
+  ip_address            = "34.36.175.111"
+  ip_protocol           = "TCP"
+  load_balancing_scheme = "EXTERNAL_MANAGED"
+  name                  = "app"
+  port_range            = "80-80"
+  project               = "spheric-rhythm-414505"
+  target                = "https://www.googleapis.com/compute/beta/projects/spheric-rhythm-414505/global/targetHttpProxies/transcoder-serverfull-loadbala-target-proxy"
+}
+# terraform import google_compute_global_forwarding_rule.app projects/spheric-rhythm-414505/global/forwardingRules/app
+resource "google_compute_instance" "transcoder_serverfull" {
+  advanced_machine_features {
+    threads_per_core = 1
+  }
+  boot_disk {
+    auto_delete = true
+    device_name = "transcoder-serverfull"
+    initialize_params {
+      image = "https://www.googleapis.com/compute/beta/projects/ubuntu-os-cloud/global/images/ubuntu-2204-jammy-v20231213a"
+      size  = 10
+      type  = "pd-balanced"
+    }
+    mode   = "READ_WRITE"
+    source = "https://www.googleapis.com/compute/v1/projects/spheric-rhythm-414505/zones/us-west2-a/disks/transcoder-serverfull"
+  }
+  confidential_instance_config {
+    enable_confidential_compute = false
+  }
+  labels = {
+    goog-gcp-marketplace  = ""
+    goog-ops-agent-policy = "v2-x86-template-1-2-0"
+  }
+  machine_type = "e2-highcpu-2"
+  metadata = {
+    ssh-keys        = "a.amr.samir:ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBDcI+DJhztxZ889yTGP/5jJHSH7LpDfltRtIlQLsWrypAn8oIHsZb42om5/GJB99qqan2XhLagCmeaoSr8ID/3A= google-ssh {\"userName\":\"a.amr.samir@gmail.com\",\"expireOn\":\"2024-03-30T23:16:20+0000\"}\na.amr.samir:ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCGHWoU6XaLXPi4C9M+AVmkazXt0HLLr9S0qYNB7A4JLJiwr5Ux2uDWbbH/HnXLZJWIC5LOMk2C8kRJgEmOqU62WIPN8Nwu/w4vjiKXS3irEuOjNpFy4pTz1xWEZ6FMz5ouzCoDoKm4JEzbBTzSZLaLdmaWfa/jNKdFxnHe6vdL0V+eidsJRSl/Iy86ZjoCagbp1MDbYZ3ciV15YMTicexxiukPmH3VM0+0AUiVH9s3SIthZ039UmG+1V0BTXi8wfFdIHMdZh0aRArVeDExPDVhYf9nsI7Ud49qDfxVO7saQK6BRXDlyjNg9EFscQugHS7domPGIX0vBi5zZP/ez9uZ google-ssh {\"userName\":\"a.amr.samir@gmail.com\",\"expireOn\":\"2024-03-30T23:16:35+0000\"}\na_amr_samir:ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCstmuV8LOtWseiMO5nlSVr8Z9RQBGtKyx80PwMFmbyIrIKOY7+CoLAdABZi+ZGds9VLtnHaDunQilbyqJAOmPj1Dt4RMLn7UXhwACiWsukG2vLaend9CDakUls4d7q4jzD0sroDwXevaRgB/wPKmOiG/dEswo/eT+e1ToJQRA96sBIuVfieeqwqVyaqMLxCsl9ufH9KDRm0+9NGQMzuY/dHUjrsTJmMXGdVSrjpnHxY/xbYdqIYtFgiJDJNJzXPFskdiaAuvFD5j+iflRNr5CBEgoaifSOiSISOLCrUbblQLSx5XcDP7HVTHZOt0Q/SnIYMQujWyoA4h+6DoMAliFD a_amr_samir@k39"
+    enable-osconfig = "TRUE"
+  }
+  name = "transcoder-serverfull"
+  network_interface {
+    access_config {
+      nat_ip       = "34.94.133.247"
+      network_tier = "PREMIUM"
+    }
+    network            = "https://www.googleapis.com/compute/v1/projects/spheric-rhythm-414505/global/networks/default"
+    network_ip         = "10.168.0.4"
+    stack_type         = "IPV4_ONLY"
+    subnetwork         = "https://www.googleapis.com/compute/v1/projects/spheric-rhythm-414505/regions/us-west2/subnetworks/default"
+    subnetwork_project = "spheric-rhythm-414505"
+  }
+  project = "spheric-rhythm-414505"
+  reservation_affinity {
+    type = "ANY_RESERVATION"
+  }
+  scheduling {
+    automatic_restart   = true
+    on_host_maintenance = "MIGRATE"
+    provisioning_model  = "STANDARD"
+  }
+  service_account {
+    email  = "634810184515-compute@developer.gserviceaccount.com"
+    scopes = ["https://www.googleapis.com/auth/cloud-platform"]
+  }
+  shielded_instance_config {
+    enable_integrity_monitoring = true
+    enable_vtpm                 = true
+  }
+  tags = ["http-server", "https-server"]
+  zone = "us-west2-a"
+}
+# terraform import google_compute_instance.transcoder_serverfull projects/spheric-rhythm-414505/zones/us-west2-a/instances/transcoder-serverfull
+resource "google_compute_address" "transcoder_serverfull_static" {
+  address      = "35.215.85.237"
+  address_type = "EXTERNAL"
+  description  = "static ip for the serverfull transcoder instance group"
+  name         = "transcoder-serverfull-static"
+  network_tier = "STANDARD"
+  project      = "spheric-rhythm-414505"
+  region       = "us-west2"
+}
+# terraform import google_compute_address.transcoder_serverfull_static projects/spheric-rhythm-414505/regions/us-west2/addresses/transcoder-serverfull-static
+resource "google_compute_image" "transcoder_clone_boot_image" {
+  disk_size_gb = 10
+  guest_os_features {
+    type = "GVNIC"
+  }
+  guest_os_features {
+    type = "SEV_CAPABLE"
+  }
+  guest_os_features {
+    type = "SEV_LIVE_MIGRATABLE"
+  }
+  guest_os_features {
+    type = "SEV_SNP_CAPABLE"
+  }
+  guest_os_features {
+    type = "UEFI_COMPATIBLE"
+  }
+  guest_os_features {
+    type = "VIRTIO_SCSI_MULTIQUEUE"
+  }
+  licenses    = ["https://www.googleapis.com/compute/v1/projects/ubuntu-os-cloud/global/licenses/ubuntu-2204-lts"]
+  name        = "transcoder-clone-boot-image"
+  project     = "spheric-rhythm-414505"
+  source_disk = "https://www.googleapis.com/compute/v1/projects/spheric-rhythm-414505/zones/us-west2-a/disks/transcoder-clone"
+}
+# terraform import google_compute_image.transcoder_clone_boot_image projects/spheric-rhythm-414505/global/images/transcoder-clone-boot-image
+resource "google_compute_firewall" "default_allow_ssh" {
+  allow {
+    ports    = ["22"]
+    protocol = "tcp"
+  }
+  description   = "Allow SSH from anywhere"
+  direction     = "INGRESS"
+  name          = "default-allow-ssh"
+  network       = "https://www.googleapis.com/compute/v1/projects/spheric-rhythm-414505/global/networks/default"
+  priority      = 65534
+  project       = "spheric-rhythm-414505"
+  source_ranges = ["0.0.0.0/0"]
+}
+# terraform import google_compute_firewall.default_allow_ssh projects/spheric-rhythm-414505/global/firewalls/default-allow-ssh
+resource "google_compute_instance" "transcoder_serverfull_vmgroup_0lf0" {
+  advanced_machine_features {
+    threads_per_core = 1
+  }
+  boot_disk {
+    auto_delete = true
+    device_name = "transcoder-clone"
+    initialize_params {
+      image = "https://www.googleapis.com/compute/beta/projects/spheric-rhythm-414505/global/images/transcoder-clone-boot-image"
+      size  = 10
+      type  = "pd-standard"
+    }
+    mode   = "READ_WRITE"
+    source = "https://www.googleapis.com/compute/v1/projects/spheric-rhythm-414505/zones/us-west2-a/disks/transcoder-serverfull-vmgroup-0lf0"
+  }
+  confidential_instance_config {
+    enable_confidential_compute = false
+  }
+  machine_type = "e2-highcpu-4"
+  metadata = {
+    created-by        = "projects/634810184515/zones/us-west2-a/instanceGroupManagers/transcoder-serverfull-vmgroup"
+    instance-template = "projects/634810184515/regions/us-west2/instanceTemplates/transcoder-clone-template-2"
+    ssh-keys          = "jancybestin:ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBIiOj/oLfftucWllTbIwzuLR9ZMuk6Rht7JaSFP7UT6I18/vzMEAplfEcldBoyplbcxhQgQd8M8hS8yrW4y6/jI= google-ssh {\"userName\":\"jancybestin@gmail.com\",\"expireOn\":\"2024-04-06T21:23:09+0000\"}"
+  }
+  name = "transcoder-serverfull-vmgroup-0lf0"
+  network_interface {
+    network            = "https://www.googleapis.com/compute/v1/projects/spheric-rhythm-414505/global/networks/default"
+    network_ip         = "10.168.0.25"
+    stack_type         = "IPV4_ONLY"
+    subnetwork         = "https://www.googleapis.com/compute/v1/projects/spheric-rhythm-414505/regions/us-west2/subnetworks/default"
+    subnetwork_project = "spheric-rhythm-414505"
+  }
+  project = "spheric-rhythm-414505"
+  reservation_affinity {
+    type = "ANY_RESERVATION"
+  }
+  scheduling {
+    automatic_restart   = true
+    on_host_maintenance = "MIGRATE"
+    provisioning_model  = "STANDARD"
+  }
+  service_account {
+    email  = "634810184515-compute@developer.gserviceaccount.com"
+    scopes = ["https://www.googleapis.com/auth/cloud-platform"]
+  }
+  shielded_instance_config {
+    enable_integrity_monitoring = true
+    enable_vtpm                 = true
+  }
+  tags = ["http-server", "https-server"]
+  zone = "us-west2-a"
+}
+# terraform import google_compute_instance.transcoder_serverfull_vmgroup_0lf0 projects/spheric-rhythm-414505/zones/us-west2-a/instances/transcoder-serverfull-vmgroup-0lf0
+resource "google_compute_instance" "instance_20240407_013854" {
+  boot_disk {
+    auto_delete = true
+    device_name = "instance-20240407-013854"
+    initialize_params {
+      image = "https://www.googleapis.com/compute/beta/projects/ubuntu-os-cloud/global/images/ubuntu-2204-jammy-v20240319"
+      size  = 10
+      type  = "pd-balanced"
+    }
+    mode   = "READ_WRITE"
+    source = "https://www.googleapis.com/compute/v1/projects/spheric-rhythm-414505/zones/us-west1-b/disks/instance-20240407-013854"
+  }
+  confidential_instance_config {
+    enable_confidential_compute = false
+  }
+  machine_type = "e2-highcpu-4"
+  metadata = {
+    ssh-keys = "jancybestin:ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBPp3qGifVEzrLy5NH0GzndxxPKiMliFHPSrpwpKW+aPjBb7NPZygFiQoYasN0YW48pxFupDRAukS8l1eeWHPRDY= google-ssh {\"userName\":\"jancybestin@gmail.com\",\"expireOn\":\"2024-04-07T01:55:40+0000\"}\njancybestin:ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCsPeQhZi1r5I0trd9FvoyKTykc5tx7Y2MK2BGQFpcOhq/4M2bW8HJG5pb+kqZInigiTxZfNEERufFky7nuLURsnoadyjt2tyxMP1s/sT/WfvSLpEQc59IwxllzexBylBfXR5h3Xb8fwU4bkK47dm0Xxk8hI0ChHhQTtiNmzhtiL1T1SkN7CFNRDymmYnaFYPKbKXqFnejCAuucnqG60GwfHIfWTg6FIUuaGtP66W4Z9VMq3nbrizq0ry5/AEsTfUxarW0sIZzeInG5ZVEyNG6f4C4pYY6Ar+BPxCmSByPa4Ztz4opc26xZUiwpduGLsxBXTFWCkPUcHqtVAwGpiI6B google-ssh {\"userName\":\"jancybestin@gmail.com\",\"expireOn\":\"2024-04-07T01:55:54+0000\"}"
+  }
+  name = "instance-20240407-013854"
+  network_interface {
+    access_config {
+      network_tier = "PREMIUM"
+    }
+    network            = "https://www.googleapis.com/compute/v1/projects/spheric-rhythm-414505/global/networks/default"
+    network_ip         = "10.138.0.11"
+    stack_type         = "IPV4_ONLY"
+    subnetwork         = "https://www.googleapis.com/compute/v1/projects/spheric-rhythm-414505/regions/us-west1/subnetworks/default"
+    subnetwork_project = "spheric-rhythm-414505"
+  }
+  project = "spheric-rhythm-414505"
+  reservation_affinity {
+    type = "ANY_RESERVATION"
+  }
+  scheduling {
+    automatic_restart   = true
+    on_host_maintenance = "MIGRATE"
+    provisioning_model  = "STANDARD"
+  }
+  service_account {
+    email  = "634810184515-compute@developer.gserviceaccount.com"
+    scopes = ["https://www.googleapis.com/auth/cloud-platform"]
+  }
+  shielded_instance_config {
+    enable_integrity_monitoring = true
+    enable_vtpm                 = true
+  }
+  zone = "us-west1-b"
+}
+# terraform import google_compute_instance.instance_20240407_013854 projects/spheric-rhythm-414505/zones/us-west1-b/instances/instance-20240407-013854
+resource "google_compute_instance" "transcoder_serverfull_vmgroup_mvss" {
+  advanced_machine_features {
+    threads_per_core = 1
+  }
+  boot_disk {
+    auto_delete = true
+    device_name = "transcoder-clone"
+    initialize_params {
+      image = "https://www.googleapis.com/compute/beta/projects/spheric-rhythm-414505/global/images/transcoder-clone-boot-image"
+      size  = 10
+      type  = "pd-standard"
+    }
+    mode   = "READ_WRITE"
+    source = "https://www.googleapis.com/compute/v1/projects/spheric-rhythm-414505/zones/us-west2-a/disks/transcoder-serverfull-vmgroup-mvss"
+  }
+  confidential_instance_config {
+    enable_confidential_compute = false
+  }
+  machine_type = "e2-highcpu-4"
+  metadata = {
+    created-by        = "projects/634810184515/zones/us-west2-a/instanceGroupManagers/transcoder-serverfull-vmgroup"
+    instance-template = "projects/634810184515/regions/us-west2/instanceTemplates/transcoder-clone-template-2"
+    ssh-keys          = "a_amr_samir:ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBKQ90bhc/xL67j53UXGXQeRChFugqaMeOfqbqs8oWtJNVNU3ZT77+JBQJ06dlD273qw6L4rRkEgjwKD/hgvdLkw= google-ssh {\"userName\":\"a.amr.samir@gmail.com\",\"expireOn\":\"2024-04-06T05:28:36+0000\"}\na_amr_samir:ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAGlyFuRVAWFb8jHxBpHAC2QJTkB4Zty8MJiLk972Pw6hrWmvpXA+dbckfjb8AKA4c4G1+TOTl/rey87/fHc9yQfQxwlM/5w3vh5hUOmqdZzpmiVNck3I60DRgxK7/ECtot9aDZnhhtq3blJ7WJzax0MHwduoJwWnGJWMJISwnCXByQjmTn9XhwL3vbWojvh4725wU1STcPkJjJsPFBiIctF4XeCpBL7Jvnq4QOBwWNWVyeyjWFGIibs/FD8I2Z4tZeGeQ//V2Wge6sAo2RWtV9KQ0kof2Pdv6xLmtDM0RLnSzWqKwngI8/vcBJheKwtGx7rEuEt2zilvk3jEj3LTInM= google-ssh {\"userName\":\"a.amr.samir@gmail.com\",\"expireOn\":\"2024-04-06T05:28:51+0000\"}"
+  }
+  name = "transcoder-serverfull-vmgroup-mvss"
+  network_interface {
+    network            = "https://www.googleapis.com/compute/v1/projects/spheric-rhythm-414505/global/networks/default"
+    network_ip         = "10.168.0.28"
+    stack_type         = "IPV4_ONLY"
+    subnetwork         = "https://www.googleapis.com/compute/v1/projects/spheric-rhythm-414505/regions/us-west2/subnetworks/default"
+    subnetwork_project = "spheric-rhythm-414505"
+  }
+  project = "spheric-rhythm-414505"
+  reservation_affinity {
+    type = "ANY_RESERVATION"
+  }
+  scheduling {
+    automatic_restart   = true
+    on_host_maintenance = "MIGRATE"
+    provisioning_model  = "STANDARD"
+  }
+  service_account {
+    email  = "634810184515-compute@developer.gserviceaccount.com"
+    scopes = ["https://www.googleapis.com/auth/cloud-platform"]
+  }
+  shielded_instance_config {
+    enable_integrity_monitoring = true
+    enable_vtpm                 = true
+  }
+  tags = ["http-server", "https-server"]
+  zone = "us-west2-a"
+}
+# terraform import google_compute_instance.transcoder_serverfull_vmgroup_mvss projects/spheric-rhythm-414505/zones/us-west2-a/instances/transcoder-serverfull-vmgroup-mvss
+resource "google_compute_instance" "transcoder_serverfull_vmgroup_2k0c" {
+  advanced_machine_features {
+    threads_per_core = 1
+  }
+  boot_disk {
+    auto_delete = true
+    device_name = "transcoder-clone"
+    initialize_params {
+      image = "https://www.googleapis.com/compute/beta/projects/spheric-rhythm-414505/global/images/transcoder-clone-boot-image"
+      size  = 10
+      type  = "pd-standard"
+    }
+    mode   = "READ_WRITE"
+    source = "https://www.googleapis.com/compute/v1/projects/spheric-rhythm-414505/zones/us-west2-a/disks/transcoder-serverfull-vmgroup-2k0c"
+  }
+  confidential_instance_config {
+    enable_confidential_compute = false
+  }
+  machine_type = "e2-highcpu-4"
+  metadata = {
+    created-by        = "projects/634810184515/zones/us-west2-a/instanceGroupManagers/transcoder-serverfull-vmgroup"
+    instance-template = "projects/634810184515/regions/us-west2/instanceTemplates/transcoder-clone-template-2"
+    ssh-keys          = "a_amr_samir:ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBKQ90bhc/xL67j53UXGXQeRChFugqaMeOfqbqs8oWtJNVNU3ZT77+JBQJ06dlD273qw6L4rRkEgjwKD/hgvdLkw= google-ssh {\"userName\":\"a.amr.samir@gmail.com\",\"expireOn\":\"2024-04-06T05:28:36+0000\"}\na_amr_samir:ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAGlyFuRVAWFb8jHxBpHAC2QJTkB4Zty8MJiLk972Pw6hrWmvpXA+dbckfjb8AKA4c4G1+TOTl/rey87/fHc9yQfQxwlM/5w3vh5hUOmqdZzpmiVNck3I60DRgxK7/ECtot9aDZnhhtq3blJ7WJzax0MHwduoJwWnGJWMJISwnCXByQjmTn9XhwL3vbWojvh4725wU1STcPkJjJsPFBiIctF4XeCpBL7Jvnq4QOBwWNWVyeyjWFGIibs/FD8I2Z4tZeGeQ//V2Wge6sAo2RWtV9KQ0kof2Pdv6xLmtDM0RLnSzWqKwngI8/vcBJheKwtGx7rEuEt2zilvk3jEj3LTInM= google-ssh {\"userName\":\"a.amr.samir@gmail.com\",\"expireOn\":\"2024-04-06T05:28:51+0000\"}"
+  }
+  name = "transcoder-serverfull-vmgroup-2k0c"
+  network_interface {
+    network            = "https://www.googleapis.com/compute/v1/projects/spheric-rhythm-414505/global/networks/default"
+    network_ip         = "10.168.0.26"
+    stack_type         = "IPV4_ONLY"
+    subnetwork         = "https://www.googleapis.com/compute/v1/projects/spheric-rhythm-414505/regions/us-west2/subnetworks/default"
+    subnetwork_project = "spheric-rhythm-414505"
+  }
+  project = "spheric-rhythm-414505"
+  reservation_affinity {
+    type = "ANY_RESERVATION"
+  }
+  scheduling {
+    automatic_restart   = true
+    on_host_maintenance = "MIGRATE"
+    provisioning_model  = "STANDARD"
+  }
+  service_account {
+    email  = "634810184515-compute@developer.gserviceaccount.com"
+    scopes = ["https://www.googleapis.com/auth/cloud-platform"]
+  }
+  shielded_instance_config {
+    enable_integrity_monitoring = true
+    enable_vtpm                 = true
+  }
+  tags = ["http-server", "https-server"]
+  zone = "us-west2-a"
+}
+# terraform import google_compute_instance.transcoder_serverfull_vmgroup_2k0c projects/spheric-rhythm-414505/zones/us-west2-a/instances/transcoder-serverfull-vmgroup-2k0c
+resource "google_compute_instance_group" "transcoder_serverfull_vmgroup" {
+  description = "This instance group is controlled by Instance Group Manager 'transcoder-serverfull-vmgroup'. To modifyinstances in this group, use the Instance Group Manager API: https://cloud.google.com/compute/docs/reference/latest/instanceGroupManagers"
+  name        = "transcoder-serverfull-vmgroup"
+  named_port {
+    name = "http-app"
+    port = 80
+  }
+  network = "https://www.googleapis.com/compute/beta/projects/spheric-rhythm-414505/global/networks/default"
+  project = "spheric-rhythm-414505"
+  zone    = "us-west2-a"
+}
+# terraform import google_compute_instance_group.transcoder_serverfull_vmgroup projects/spheric-rhythm-414505/zones/us-west2-a/instanceGroups/transcoder-serverfull-vmgroup
+resource "google_compute_instance" "transcoder_serverfull_vmgroup_n0bs" {
+  advanced_machine_features {
+    threads_per_core = 1
+  }
+  boot_disk {
+    auto_delete = true
+    device_name = "transcoder-clone"
+    initialize_params {
+      image = "https://www.googleapis.com/compute/beta/projects/spheric-rhythm-414505/global/images/transcoder-clone-boot-image"
+      size  = 10
+      type  = "pd-standard"
+    }
+    mode   = "READ_WRITE"
+    source = "https://www.googleapis.com/compute/v1/projects/spheric-rhythm-414505/zones/us-west2-a/disks/transcoder-serverfull-vmgroup-n0bs"
+  }
+  confidential_instance_config {
+    enable_confidential_compute = false
+  }
+  machine_type = "e2-highcpu-4"
+  metadata = {
+    instance-template = "projects/634810184515/regions/us-west2/instanceTemplates/transcoder-clone-template-2"
+    ssh-keys          = "a_amr_samir:ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBKQ90bhc/xL67j53UXGXQeRChFugqaMeOfqbqs8oWtJNVNU3ZT77+JBQJ06dlD273qw6L4rRkEgjwKD/hgvdLkw= google-ssh {\"userName\":\"a.amr.samir@gmail.com\",\"expireOn\":\"2024-04-06T05:28:36+0000\"}\na_amr_samir:ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAGlyFuRVAWFb8jHxBpHAC2QJTkB4Zty8MJiLk972Pw6hrWmvpXA+dbckfjb8AKA4c4G1+TOTl/rey87/fHc9yQfQxwlM/5w3vh5hUOmqdZzpmiVNck3I60DRgxK7/ECtot9aDZnhhtq3blJ7WJzax0MHwduoJwWnGJWMJISwnCXByQjmTn9XhwL3vbWojvh4725wU1STcPkJjJsPFBiIctF4XeCpBL7Jvnq4QOBwWNWVyeyjWFGIibs/FD8I2Z4tZeGeQ//V2Wge6sAo2RWtV9KQ0kof2Pdv6xLmtDM0RLnSzWqKwngI8/vcBJheKwtGx7rEuEt2zilvk3jEj3LTInM= google-ssh {\"userName\":\"a.amr.samir@gmail.com\",\"expireOn\":\"2024-04-06T05:28:51+0000\"}"
+    created-by        = "projects/634810184515/zones/us-west2-a/instanceGroupManagers/transcoder-serverfull-vmgroup"
+  }
+  name = "transcoder-serverfull-vmgroup-n0bs"
+  network_interface {
+    network            = "https://www.googleapis.com/compute/v1/projects/spheric-rhythm-414505/global/networks/default"
+    network_ip         = "10.168.0.29"
+    stack_type         = "IPV4_ONLY"
+    subnetwork         = "https://www.googleapis.com/compute/v1/projects/spheric-rhythm-414505/regions/us-west2/subnetworks/default"
+    subnetwork_project = "spheric-rhythm-414505"
+  }
+  project = "spheric-rhythm-414505"
+  reservation_affinity {
+    type = "ANY_RESERVATION"
+  }
+  scheduling {
+    automatic_restart   = true
+    on_host_maintenance = "MIGRATE"
+    provisioning_model  = "STANDARD"
+  }
+  service_account {
+    email  = "634810184515-compute@developer.gserviceaccount.com"
+    scopes = ["https://www.googleapis.com/auth/cloud-platform"]
+  }
+  shielded_instance_config {
+    enable_integrity_monitoring = true
+    enable_vtpm                 = true
+  }
+  tags = ["http-server", "https-server"]
+  zone = "us-west2-a"
+}
+# terraform import google_compute_instance.transcoder_serverfull_vmgroup_n0bs projects/spheric-rhythm-414505/zones/us-west2-a/instances/transcoder-serverfull-vmgroup-n0bs
+resource "google_compute_instance" "transcoder_serverfull_vmgroup_dj1p" {
+  advanced_machine_features {
+    threads_per_core = 1
+  }
+  boot_disk {
+    auto_delete = true
+    device_name = "transcoder-clone"
+    initialize_params {
+      image = "https://www.googleapis.com/compute/beta/projects/spheric-rhythm-414505/global/images/transcoder-clone-boot-image"
+      size  = 10
+      type  = "pd-standard"
+    }
+    mode   = "READ_WRITE"
+    source = "https://www.googleapis.com/compute/v1/projects/spheric-rhythm-414505/zones/us-west2-a/disks/transcoder-serverfull-vmgroup-dj1p"
+  }
+  confidential_instance_config {
+    enable_confidential_compute = false
+  }
+  machine_type = "e2-highcpu-4"
+  metadata = {
+    instance-template = "projects/634810184515/regions/us-west2/instanceTemplates/transcoder-clone-template-2"
+    ssh-keys          = "a_amr_samir:ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBKQ90bhc/xL67j53UXGXQeRChFugqaMeOfqbqs8oWtJNVNU3ZT77+JBQJ06dlD273qw6L4rRkEgjwKD/hgvdLkw= google-ssh {\"userName\":\"a.amr.samir@gmail.com\",\"expireOn\":\"2024-04-06T05:28:36+0000\"}\na_amr_samir:ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAGlyFuRVAWFb8jHxBpHAC2QJTkB4Zty8MJiLk972Pw6hrWmvpXA+dbckfjb8AKA4c4G1+TOTl/rey87/fHc9yQfQxwlM/5w3vh5hUOmqdZzpmiVNck3I60DRgxK7/ECtot9aDZnhhtq3blJ7WJzax0MHwduoJwWnGJWMJISwnCXByQjmTn9XhwL3vbWojvh4725wU1STcPkJjJsPFBiIctF4XeCpBL7Jvnq4QOBwWNWVyeyjWFGIibs/FD8I2Z4tZeGeQ//V2Wge6sAo2RWtV9KQ0kof2Pdv6xLmtDM0RLnSzWqKwngI8/vcBJheKwtGx7rEuEt2zilvk3jEj3LTInM= google-ssh {\"userName\":\"a.amr.samir@gmail.com\",\"expireOn\":\"2024-04-06T05:28:51+0000\"}"
+    created-by        = "projects/634810184515/zones/us-west2-a/instanceGroupManagers/transcoder-serverfull-vmgroup"
+  }
+  name = "transcoder-serverfull-vmgroup-dj1p"
+  network_interface {
+    network            = "https://www.googleapis.com/compute/v1/projects/spheric-rhythm-414505/global/networks/default"
+    network_ip         = "10.168.0.30"
+    stack_type         = "IPV4_ONLY"
+    subnetwork         = "https://www.googleapis.com/compute/v1/projects/spheric-rhythm-414505/regions/us-west2/subnetworks/default"
+    subnetwork_project = "spheric-rhythm-414505"
+  }
+  project = "spheric-rhythm-414505"
+  reservation_affinity {
+    type = "ANY_RESERVATION"
+  }
+  scheduling {
+    automatic_restart   = true
+    on_host_maintenance = "MIGRATE"
+    provisioning_model  = "STANDARD"
+  }
+  service_account {
+    email  = "634810184515-compute@developer.gserviceaccount.com"
+    scopes = ["https://www.googleapis.com/auth/cloud-platform"]
+  }
+  shielded_instance_config {
+    enable_integrity_monitoring = true
+    enable_vtpm                 = true
+  }
+  tags = ["http-server", "https-server"]
+  zone = "us-west2-a"
+}
+# terraform import google_compute_instance.transcoder_serverfull_vmgroup_dj1p projects/spheric-rhythm-414505/zones/us-west2-a/instances/transcoder-serverfull-vmgroup-dj1p
+resource "google_compute_instance" "transcoder_serverfull_vmgroup_hk1q" {
+  advanced_machine_features {
+    threads_per_core = 1
+  }
+  boot_disk {
+    auto_delete = true
+    device_name = "transcoder-clone"
+    initialize_params {
+      image = "https://www.googleapis.com/compute/beta/projects/spheric-rhythm-414505/global/images/transcoder-clone-boot-image"
+      size  = 10
+      type  = "pd-standard"
+    }
+    mode   = "READ_WRITE"
+    source = "https://www.googleapis.com/compute/v1/projects/spheric-rhythm-414505/zones/us-west2-a/disks/transcoder-serverfull-vmgroup-hk1q"
+  }
+  confidential_instance_config {
+    enable_confidential_compute = false
+  }
+  machine_type = "e2-highcpu-4"
+  metadata = {
+    created-by        = "projects/634810184515/zones/us-west2-a/instanceGroupManagers/transcoder-serverfull-vmgroup"
+    instance-template = "projects/634810184515/regions/us-west2/instanceTemplates/transcoder-clone-template-2"
+    ssh-keys          = "a_amr_samir:ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBKQ90bhc/xL67j53UXGXQeRChFugqaMeOfqbqs8oWtJNVNU3ZT77+JBQJ06dlD273qw6L4rRkEgjwKD/hgvdLkw= google-ssh {\"userName\":\"a.amr.samir@gmail.com\",\"expireOn\":\"2024-04-06T05:28:36+0000\"}\na_amr_samir:ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAGlyFuRVAWFb8jHxBpHAC2QJTkB4Zty8MJiLk972Pw6hrWmvpXA+dbckfjb8AKA4c4G1+TOTl/rey87/fHc9yQfQxwlM/5w3vh5hUOmqdZzpmiVNck3I60DRgxK7/ECtot9aDZnhhtq3blJ7WJzax0MHwduoJwWnGJWMJISwnCXByQjmTn9XhwL3vbWojvh4725wU1STcPkJjJsPFBiIctF4XeCpBL7Jvnq4QOBwWNWVyeyjWFGIibs/FD8I2Z4tZeGeQ//V2Wge6sAo2RWtV9KQ0kof2Pdv6xLmtDM0RLnSzWqKwngI8/vcBJheKwtGx7rEuEt2zilvk3jEj3LTInM= google-ssh {\"userName\":\"a.amr.samir@gmail.com\",\"expireOn\":\"2024-04-06T05:28:51+0000\"}"
+  }
+  name = "transcoder-serverfull-vmgroup-hk1q"
+  network_interface {
+    network            = "https://www.googleapis.com/compute/v1/projects/spheric-rhythm-414505/global/networks/default"
+    network_ip         = "10.168.0.27"
+    stack_type         = "IPV4_ONLY"
+    subnetwork         = "https://www.googleapis.com/compute/v1/projects/spheric-rhythm-414505/regions/us-west2/subnetworks/default"
+    subnetwork_project = "spheric-rhythm-414505"
+  }
+  project = "spheric-rhythm-414505"
+  reservation_affinity {
+    type = "ANY_RESERVATION"
+  }
+  scheduling {
+    automatic_restart   = true
+    on_host_maintenance = "MIGRATE"
+    provisioning_model  = "STANDARD"
+  }
+  service_account {
+    email  = "634810184515-compute@developer.gserviceaccount.com"
+    scopes = ["https://www.googleapis.com/auth/cloud-platform"]
+  }
+  shielded_instance_config {
+    enable_integrity_monitoring = true
+    enable_vtpm                 = true
+  }
+  tags = ["http-server", "https-server"]
+  zone = "us-west2-a"
+}
+# terraform import google_compute_instance.transcoder_serverfull_vmgroup_hk1q projects/spheric-rhythm-414505/zones/us-west2-a/instances/transcoder-serverfull-vmgroup-hk1q
+resource "google_compute_instance_template" "transcoder_clone_template_1" {
+  advanced_machine_features {
+    threads_per_core = 1
+  }
+  confidential_instance_config {
+    enable_confidential_compute = false
+  }
+  disk {
+    auto_delete  = true
+    boot         = true
+    device_name  = "transcoder-clone"
+    disk_size_gb = 10
+    disk_type    = "pd-standard"
+    mode         = "READ_WRITE"
+    source_image = "projects/spheric-rhythm-414505/global/images/transcoder-clone-boot-image"
+    type         = "PERSISTENT"
+  }
+  labels = {
+    managed-by-cnrm = "true"
+  }
+  machine_type = "e2-highcpu-2"
+  metadata = {
+    ssh-keys = "a_amr_samir:ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBKQ90bhc/xL67j53UXGXQeRChFugqaMeOfqbqs8oWtJNVNU3ZT77+JBQJ06dlD273qw6L4rRkEgjwKD/hgvdLkw= google-ssh {\"userName\":\"a.amr.samir@gmail.com\",\"expireOn\":\"2024-04-06T05:28:36+0000\"}\na_amr_samir:ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAGlyFuRVAWFb8jHxBpHAC2QJTkB4Zty8MJiLk972Pw6hrWmvpXA+dbckfjb8AKA4c4G1+TOTl/rey87/fHc9yQfQxwlM/5w3vh5hUOmqdZzpmiVNck3I60DRgxK7/ECtot9aDZnhhtq3blJ7WJzax0MHwduoJwWnGJWMJISwnCXByQjmTn9XhwL3vbWojvh4725wU1STcPkJjJsPFBiIctF4XeCpBL7Jvnq4QOBwWNWVyeyjWFGIibs/FD8I2Z4tZeGeQ//V2Wge6sAo2RWtV9KQ0kof2Pdv6xLmtDM0RLnSzWqKwngI8/vcBJheKwtGx7rEuEt2zilvk3jEj3LTInM= google-ssh {\"userName\":\"a.amr.samir@gmail.com\",\"expireOn\":\"2024-04-06T05:28:51+0000\"}"
+  }
+  name = "transcoder-clone-template-1"
+  network_interface {
+    access_config {
+      network_tier = "PREMIUM"
+    }
+    network            = "https://www.googleapis.com/compute/v1/projects/spheric-rhythm-414505/global/networks/default"
+    stack_type         = "IPV4_ONLY"
+    subnetwork         = "https://www.googleapis.com/compute/v1/projects/spheric-rhythm-414505/regions/us-west2/subnetworks/default"
+    subnetwork_project = "spheric-rhythm-414505"
+  }
+  project = "spheric-rhythm-414505"
+  region  = "us-west2"
+  reservation_affinity {
+    type = "ANY_RESERVATION"
+  }
+  scheduling {
+    automatic_restart   = true
+    on_host_maintenance = "MIGRATE"
+    provisioning_model  = "STANDARD"
+  }
+  service_account {
+    email  = "634810184515-compute@developer.gserviceaccount.com"
+    scopes = ["https://www.googleapis.com/auth/cloud-platform"]
+  }
+  tags = ["http-server", "https-server"]
+}
+# terraform import google_compute_instance_template.transcoder_clone_template_1 projects/spheric-rhythm-414505/global/instanceTemplates/transcoder-clone-template-1
+resource "google_compute_security_policy" "default_security_policy_for_backend" {
+  description = "Default security policy for: serverfull-backend-service"
+  name        = "default-security-policy-for-backend"
+  project     = "spheric-rhythm-414505"
+  rule {
+    action = "allow"
+    match {
+      config {
+        src_ip_ranges = ["*"]
+      }
+      versioned_expr = "SRC_IPS_V1"
+    }
+    priority = 2147483647
+  }
+  rule {
+    action      = "throttle"
+    description = "Default rate limiting rule"
+    match {
+      config {
+        src_ip_ranges = ["*"]
+      }
+      versioned_expr = "SRC_IPS_V1"
+    }
+    priority = 2147483646
+    rate_limit_options {
+      conform_action = "allow"
+      enforce_on_key = "IP"
+      exceed_action  = "deny(403)"
+      rate_limit_threshold {
+        count        = 500
+        interval_sec = 60
+      }
+    }
+  }
+  type = "CLOUD_ARMOR"
+}
+# terraform import google_compute_security_policy.default_security_policy_for_backend projects/spheric-rhythm-414505/global/securityPolicies/default-security-policy-for-backend
+resource "google_compute_target_http_proxy" "transcoder_serverfull_loadbala_target_proxy" {
+  name    = "transcoder-serverfull-loadbala-target-proxy"
+  project = "spheric-rhythm-414505"
+  url_map = "https://www.googleapis.com/compute/v1/projects/spheric-rhythm-414505/global/urlMaps/transcoder-serverfull-loadbalancer"
+}
+# terraform import google_compute_target_http_proxy.transcoder_serverfull_loadbala_target_proxy projects/spheric-rhythm-414505/global/targetHttpProxies/transcoder-serverfull-loadbala-target-proxy
+resource "google_compute_snapshot" "transcoder_container_auto_start" {
+  description       = "intel transcoder with the API and the container auto starts on boot"
+  name              = "transcoder-container-auto-start"
+  project           = "spheric-rhythm-414505"
+  source_disk       = "https://www.googleapis.com/compute/v1/projects/spheric-rhythm-414505/zones/us-west2-a/disks/transcoder-serverfull"
+  storage_locations = ["us-west2"]
+}
+# terraform import google_compute_snapshot.transcoder_container_auto_start projects/spheric-rhythm-414505/global/snapshots/transcoder-container-auto-start
+resource "google_compute_url_map" "transcoder_serverfull_loadbalancer" {
+  default_service = "https://www.googleapis.com/compute/v1/projects/spheric-rhythm-414505/global/backendServices/serverfull-backend-service"
+  name            = "transcoder-serverfull-loadbalancer"
+  project         = "spheric-rhythm-414505"
+}
+# terraform import google_compute_url_map.transcoder_serverfull_loadbalancer projects/spheric-rhythm-414505/global/urlMaps/transcoder-serverfull-loadbalancer
+resource "google_service_account" "spheric_rhythm_414505" {
+  account_id   = "spheric-rhythm-414505"
+  display_name = "App Engine default service account"
+  project      = "spheric-rhythm-414505"
+}
+# terraform import google_service_account.spheric_rhythm_414505 projects/spheric-rhythm-414505/serviceAccounts/spheric-rhythm-414505@spheric-rhythm-414505.iam.gserviceaccount.com
+resource "google_service_account" "634810184515_compute" {
+  account_id   = "634810184515-compute"
+  display_name = "Compute Engine default service account"
+  project      = "spheric-rhythm-414505"
+}
+# terraform import google_service_account.634810184515_compute projects/spheric-rhythm-414505/serviceAccounts/634810184515-compute@spheric-rhythm-414505.iam.gserviceaccount.com
+resource "google_compute_subnetwork" "proxy_only" {
+  ip_cidr_range              = "10.0.0.0/24"
+  name                       = "proxy-only"
+  network                    = "https://www.googleapis.com/compute/v1/projects/spheric-rhythm-414505/global/networks/default"
+  private_ipv6_google_access = "DISABLE_GOOGLE_ACCESS"
+  project                    = "spheric-rhythm-414505"
+  purpose                    = "REGIONAL_MANAGED_PROXY"
+  region                     = "us-west2"
+  role                       = "ACTIVE"
+}
+# terraform import google_compute_subnetwork.proxy_only projects/spheric-rhythm-414505/regions/us-west2/subnetworks/proxy-only
+resource "google_service_account" "gcsbuckets" {
+  account_id   = "gcsbuckets"
+  description  = "gcs bucket"
+  display_name = "gcsbuckets"
+  project      = "spheric-rhythm-414505"
+}
+# terraform import google_service_account.gcsbuckets projects/spheric-rhythm-414505/serviceAccounts/gcsbuckets@spheric-rhythm-414505.iam.gserviceaccount.com
+resource "google_compute_url_map" "transcoder_serverfull_loadbalancer_2" {
+  default_service = "https://www.googleapis.com/compute/v1/projects/spheric-rhythm-414505/global/backendServices/serverfull-backend-service"
+  name            = "transcoder-serverfull-loadbalancer-2"
+  project         = "spheric-rhythm-414505"
+}
+# terraform import google_compute_url_map.transcoder_serverfull_loadbalancer_2 projects/spheric-rhythm-414505/global/urlMaps/transcoder-serverfull-loadbalancer-2
+resource "google_logging_log_sink" "a_required" {
+  destination            = "logging.googleapis.com/projects/spheric-rhythm-414505/locations/global/buckets/_Required"
+  filter                 = "LOG_ID(\"cloudaudit.googleapis.com/activity\") OR LOG_ID(\"externalaudit.googleapis.com/activity\") OR LOG_ID(\"cloudaudit.googleapis.com/system_event\") OR LOG_ID(\"externalaudit.googleapis.com/system_event\") OR LOG_ID(\"cloudaudit.googleapis.com/access_transparency\") OR LOG_ID(\"externalaudit.googleapis.com/access_transparency\")"
+  name                   = "_Required"
+  project                = "634810184515"
+  unique_writer_identity = true
+}
+# terraform import google_logging_log_sink.a_required 634810184515###_Required
+resource "google_pubsub_subscription" "eventarc_us_west2_logger_serverfull_359930_sub_041" {
+  ack_deadline_seconds = 600
+  labels = {
+    goog-eventarc              = ""
+    goog-drz-eventarc-location = "us-west2"
+    goog-drz-eventarc-uuid     = "4e126cb1-922b-4425-9717-476e9b5548b4"
+  }
+  message_retention_duration = "86400s"
+  name                       = "eventarc-us-west2-logger-serverfull-359930-sub-041"
+  project                    = "spheric-rhythm-414505"
+  push_config {
+    oidc_token {
+      audience              = "https://logger-serverfull-3nwh2m4zca-wl.a.run.app"
+      service_account_email = "634810184515-compute@developer.gserviceaccount.com"
+    }
+    push_endpoint = "https://logger-serverfull-3nwh2m4zca-wl.a.run.app?__GCP_CloudEventsMode=GCS_NOTIFICATION"
+  }
+  retry_policy {
+    maximum_backoff = "600s"
+    minimum_backoff = "10s"
+  }
+  topic = "projects/spheric-rhythm-414505/topics/eventarc-us-west2-logger-serverfull-359930-772"
+}
+# terraform import google_pubsub_subscription.eventarc_us_west2_logger_serverfull_359930_sub_041 projects/spheric-rhythm-414505/subscriptions/eventarc-us-west2-logger-serverfull-359930-sub-041
+resource "google_pubsub_topic" "container_analysis_notes_v1" {
+  name    = "container-analysis-notes-v1"
+  project = "spheric-rhythm-414505"
+}
+# terraform import google_pubsub_topic.container_analysis_notes_v1 projects/spheric-rhythm-414505/topics/container-analysis-notes-v1
+resource "google_pubsub_topic" "container_analysis_occurrences_v1" {
+  name    = "container-analysis-occurrences-v1"
+  project = "spheric-rhythm-414505"
+}
+# terraform import google_pubsub_topic.container_analysis_occurrences_v1 projects/spheric-rhythm-414505/topics/container-analysis-occurrences-v1
+resource "google_pubsub_subscription" "eventarc_us_west2_logger_serverless_597942_sub_284" {
+  ack_deadline_seconds = 600
+  labels = {
+    goog-drz-eventarc-uuid     = "8ab1b034-05c7-4e2a-a1fb-d9ff6a86f9cf"
+    goog-eventarc              = ""
+    goog-drz-eventarc-location = "us-west2"
+  }
+  message_retention_duration = "86400s"
+  name                       = "eventarc-us-west2-logger-serverless-597942-sub-284"
+  project                    = "spheric-rhythm-414505"
+  push_config {
+    oidc_token {
+      audience              = "https://logger-serverless-3nwh2m4zca-wl.a.run.app"
+      service_account_email = "634810184515-compute@developer.gserviceaccount.com"
+    }
+    push_endpoint = "https://logger-serverless-3nwh2m4zca-wl.a.run.app?__GCP_CloudEventsMode=GCS_NOTIFICATION"
+  }
+  retry_policy {
+    maximum_backoff = "600s"
+    minimum_backoff = "10s"
+  }
+  topic = "projects/spheric-rhythm-414505/topics/eventarc-us-west2-logger-serverless-597942-866"
+}
+# terraform import google_pubsub_subscription.eventarc_us_west2_logger_serverless_597942_sub_284 projects/spheric-rhythm-414505/subscriptions/eventarc-us-west2-logger-serverless-597942-sub-284
+resource "google_compute_target_http_proxy" "transcoder_serverfull_loadba_2_target_proxy" {
+  name    = "transcoder-serverfull-loadba-2-target-proxy"
+  project = "spheric-rhythm-414505"
+  url_map = "https://www.googleapis.com/compute/v1/projects/spheric-rhythm-414505/global/urlMaps/transcoder-serverfull-loadbalancer-2"
+}
+# terraform import google_compute_target_http_proxy.transcoder_serverfull_loadba_2_target_proxy projects/spheric-rhythm-414505/global/targetHttpProxies/transcoder-serverfull-loadba-2-target-proxy
+resource "google_pubsub_topic" "eventarc_us_west2_new_media_trigger_456" {
+  labels = {
+    goog-eventarc              = ""
+    goog-drz-eventarc-location = "us-west2"
+    goog-drz-eventarc-uuid     = "eff0d857-04db-4c64-81db-ff86d27e7208"
+  }
+  message_storage_policy {
+    allowed_persistence_regions = ["us-west2"]
+  }
+  name    = "eventarc-us-west2-new-media-trigger-456"
+  project = "spheric-rhythm-414505"
+}
+# terraform import google_pubsub_topic.eventarc_us_west2_new_media_trigger_456 projects/spheric-rhythm-414505/topics/eventarc-us-west2-new-media-trigger-456
+resource "google_pubsub_topic" "eventarc_us_west2_logger_serverless_597942_866" {
+  labels = {
+    goog-eventarc              = ""
+    goog-drz-eventarc-location = "us-west2"
+    goog-drz-eventarc-uuid     = "8ab1b034-05c7-4e2a-a1fb-d9ff6a86f9cf"
+  }
+  message_storage_policy {
+    allowed_persistence_regions = ["us-west2"]
+  }
+  name    = "eventarc-us-west2-logger-serverless-597942-866"
+  project = "spheric-rhythm-414505"
+}
+# terraform import google_pubsub_topic.eventarc_us_west2_logger_serverless_597942_866 projects/spheric-rhythm-414505/topics/eventarc-us-west2-logger-serverless-597942-866
+resource "google_pubsub_topic" "eventarc_us_west2_download_trigger_serverfull_586294_361" {
+  labels = {
+    goog-eventarc              = ""
+    goog-drz-eventarc-uuid     = "1f1d2700-233f-4580-a7cb-ba04c65cc731"
+    goog-drz-eventarc-location = "us-west2"
+  }
+  message_storage_policy {
+    allowed_persistence_regions = ["us-west2"]
+  }
+  name    = "eventarc-us-west2-download-trigger-serverfull-586294-361"
+  project = "spheric-rhythm-414505"
+}
+# terraform import google_pubsub_topic.eventarc_us_west2_download_trigger_serverfull_586294_361 projects/spheric-rhythm-414505/topics/eventarc-us-west2-download-trigger-serverfull-586294-361
+resource "google_pubsub_topic" "eventarc_us_west2_download_trigger_878885_696" {
+  labels = {
+    goog-eventarc              = ""
+    goog-drz-eventarc-location = "us-west2"
+    goog-drz-eventarc-uuid     = "60e5f9ed-06b9-44ed-8515-e698290e47bc"
+  }
+  message_storage_policy {
+    allowed_persistence_regions = ["us-west2"]
+  }
+  name    = "eventarc-us-west2-download-trigger-878885-696"
+  project = "spheric-rhythm-414505"
+}
+# terraform import google_pubsub_topic.eventarc_us_west2_download_trigger_878885_696 projects/spheric-rhythm-414505/topics/eventarc-us-west2-download-trigger-878885-696
+resource "google_pubsub_subscription" "eventarc_us_west2_new_media_trigger_sub_202" {
+  ack_deadline_seconds = 10
+  labels = {
+    goog-drz-eventarc-uuid     = "eff0d857-04db-4c64-81db-ff86d27e7208"
+    goog-drz-eventarc-location = "us-west2"
+    goog-eventarc              = ""
+  }
+  message_retention_duration = "86400s"
+  name                       = "eventarc-us-west2-new-media-trigger-sub-202"
+  project                    = "spheric-rhythm-414505"
+  push_config {
+    oidc_token {
+      audience              = "https://workflowexecutions.googleapis.com/v1/projects/spheric-rhythm-414505/locations/us-west2/workflows/transcodingworkflow:triggerPubsubExecution"
+      service_account_email = "634810184515-compute@developer.gserviceaccount.com"
+    }
+    push_endpoint = "https://workflowexecutions.googleapis.com/v1/projects/spheric-rhythm-414505/locations/us-west2/workflows/transcodingworkflow:triggerPubsubExecution?__GCP_CloudEventsMode=GCS_NOTIFICATION"
+  }
+  retry_policy {
+    maximum_backoff = "600s"
+    minimum_backoff = "10s"
+  }
+  topic = "projects/spheric-rhythm-414505/topics/eventarc-us-west2-new-media-trigger-456"
+}
+# terraform import google_pubsub_subscription.eventarc_us_west2_new_media_trigger_sub_202 projects/spheric-rhythm-414505/subscriptions/eventarc-us-west2-new-media-trigger-sub-202
+resource "google_pubsub_subscription" "eventarc_us_west2_download_trigger_serverfull_586294_sub_427" {
+  ack_deadline_seconds = 600
+  labels = {
+    goog-eventarc              = ""
+    goog-drz-eventarc-location = "us-west2"
+    goog-drz-eventarc-uuid     = "1f1d2700-233f-4580-a7cb-ba04c65cc731"
+  }
+  message_retention_duration = "86400s"
+  name                       = "eventarc-us-west2-download-trigger-serverfull-586294-sub-427"
+  project                    = "spheric-rhythm-414505"
+  push_config {
+    oidc_token {
+      audience              = "https://download-trigger-serverfull-3nwh2m4zca-wl.a.run.app"
+      service_account_email = "634810184515-compute@developer.gserviceaccount.com"
+    }
+    push_endpoint = "https://download-trigger-serverfull-3nwh2m4zca-wl.a.run.app?__GCP_CloudEventsMode=GCS_NOTIFICATION"
+  }
+  retry_policy {
+    maximum_backoff = "600s"
+    minimum_backoff = "10s"
+  }
+  topic = "projects/spheric-rhythm-414505/topics/eventarc-us-west2-download-trigger-serverfull-586294-361"
+}
+# terraform import google_pubsub_subscription.eventarc_us_west2_download_trigger_serverfull_586294_sub_427 projects/spheric-rhythm-414505/subscriptions/eventarc-us-west2-download-trigger-serverfull-586294-sub-427
+resource "google_pubsub_subscription" "download_video_creation_notifier_sub" {
+  ack_deadline_seconds = 10
+  expiration_policy {
+    ttl = "2678400s"
+  }
+  message_retention_duration = "604800s"
+  name                       = "download-video-creation-notifier-sub"
+  project                    = "spheric-rhythm-414505"
+  topic                      = "projects/spheric-rhythm-414505/topics/download-video-creation-notifier"
+}
+# terraform import google_pubsub_subscription.download_video_creation_notifier_sub projects/spheric-rhythm-414505/subscriptions/download-video-creation-notifier-sub
+resource "google_pubsub_subscription" "eventarc_us_west2_download_trigger_878885_sub_781" {
+  ack_deadline_seconds = 600
+  labels = {
+    goog-drz-eventarc-uuid     = "60e5f9ed-06b9-44ed-8515-e698290e47bc"
+    goog-eventarc              = ""
+    goog-drz-eventarc-location = "us-west2"
+  }
+  message_retention_duration = "86400s"
+  name                       = "eventarc-us-west2-download-trigger-878885-sub-781"
+  project                    = "spheric-rhythm-414505"
+  push_config {
+    oidc_token {
+      audience              = "https://download-trigger-3nwh2m4zca-wl.a.run.app"
+      service_account_email = "634810184515-compute@developer.gserviceaccount.com"
+    }
+    push_endpoint = "https://download-trigger-3nwh2m4zca-wl.a.run.app?__GCP_CloudEventsMode=GCS_NOTIFICATION"
+  }
+  retry_policy {
+    maximum_backoff = "600s"
+    minimum_backoff = "10s"
+  }
+  topic = "projects/spheric-rhythm-414505/topics/eventarc-us-west2-download-trigger-878885-696"
+}
+# terraform import google_pubsub_subscription.eventarc_us_west2_download_trigger_878885_sub_781 projects/spheric-rhythm-414505/subscriptions/eventarc-us-west2-download-trigger-878885-sub-781
+resource "google_pubsub_topic" "container_analysis_occurrences_v1beta1" {
+  name    = "container-analysis-occurrences-v1beta1"
+  project = "spheric-rhythm-414505"
+}
+# terraform import google_pubsub_topic.container_analysis_occurrences_v1beta1 projects/spheric-rhythm-414505/topics/container-analysis-occurrences-v1beta1
+resource "google_pubsub_topic" "download_video_creation_notifier" {
+  name    = "download-video-creation-notifier"
+  project = "spheric-rhythm-414505"
+}
+# terraform import google_pubsub_topic.download_video_creation_notifier projects/spheric-rhythm-414505/topics/download-video-creation-notifier
+resource "google_pubsub_topic" "eventarc_us_west2_logger_serverfull_359930_772" {
+  labels = {
+    goog-drz-eventarc-uuid     = "4e126cb1-922b-4425-9717-476e9b5548b4"
+    goog-drz-eventarc-location = "us-west2"
+    goog-eventarc              = ""
+  }
+  message_storage_policy {
+    allowed_persistence_regions = ["us-west2"]
+  }
+  name    = "eventarc-us-west2-logger-serverfull-359930-772"
+  project = "spheric-rhythm-414505"
+}
+# terraform import google_pubsub_topic.eventarc_us_west2_logger_serverfull_359930_772 projects/spheric-rhythm-414505/topics/eventarc-us-west2-logger-serverfull-359930-772
+resource "google_project_service" "analyticshub_googleapis_com" {
+  project = "634810184515"
+  service = "analyticshub.googleapis.com"
+}
+# terraform import google_project_service.analyticshub_googleapis_com 634810184515/analyticshub.googleapis.com
+resource "google_project_service" "cloudapis_googleapis_com" {
+  project = "634810184515"
+  service = "cloudapis.googleapis.com"
+}
+# terraform import google_project_service.cloudapis_googleapis_com 634810184515/cloudapis.googleapis.com
+resource "google_project_service" "bigqueryconnection_googleapis_com" {
+  project = "634810184515"
+  service = "bigqueryconnection.googleapis.com"
+}
+# terraform import google_project_service.bigqueryconnection_googleapis_com 634810184515/bigqueryconnection.googleapis.com
+resource "google_project_service" "binaryauthorization_googleapis_com" {
+  project = "634810184515"
+  service = "binaryauthorization.googleapis.com"
+}
+# terraform import google_project_service.binaryauthorization_googleapis_com 634810184515/binaryauthorization.googleapis.com
+resource "google_pubsub_topic" "container_analysis_notes_v1beta1" {
+  name    = "container-analysis-notes-v1beta1"
+  project = "spheric-rhythm-414505"
+}
+# terraform import google_pubsub_topic.container_analysis_notes_v1beta1 projects/spheric-rhythm-414505/topics/container-analysis-notes-v1beta1
+resource "google_project_service" "containerregistry_googleapis_com" {
+  project = "634810184515"
+  service = "containerregistry.googleapis.com"
+}
+# terraform import google_project_service.containerregistry_googleapis_com 634810184515/containerregistry.googleapis.com
+resource "google_project_service" "containerfilesystem_googleapis_com" {
+  project = "634810184515"
+  service = "containerfilesystem.googleapis.com"
+}
+# terraform import google_project_service.containerfilesystem_googleapis_com 634810184515/containerfilesystem.googleapis.com
+resource "google_project_service" "cloudtrace_googleapis_com" {
+  project = "634810184515"
+  service = "cloudtrace.googleapis.com"
+}
+# terraform import google_project_service.cloudtrace_googleapis_com 634810184515/cloudtrace.googleapis.com
+resource "google_project_service" "dataplex_googleapis_com" {
+  project = "634810184515"
+  service = "dataplex.googleapis.com"
+}
+# terraform import google_project_service.dataplex_googleapis_com 634810184515/dataplex.googleapis.com
+resource "google_project_service" "dns_googleapis_com" {
+  project = "634810184515"
+  service = "dns.googleapis.com"
+}
+# terraform import google_project_service.dns_googleapis_com 634810184515/dns.googleapis.com
+resource "google_project_service" "bigquery_googleapis_com" {
+  project = "634810184515"
+  service = "bigquery.googleapis.com"
+}
+# terraform import google_project_service.bigquery_googleapis_com 634810184515/bigquery.googleapis.com
+resource "google_project_service" "compute_googleapis_com" {
+  project = "634810184515"
+  service = "compute.googleapis.com"
+}
+# terraform import google_project_service.compute_googleapis_com 634810184515/compute.googleapis.com
+resource "google_project_service" "autoscaling_googleapis_com" {
+  project = "634810184515"
+  service = "autoscaling.googleapis.com"
+}
+# terraform import google_project_service.autoscaling_googleapis_com 634810184515/autoscaling.googleapis.com
+resource "google_project_service" "bigquerydatapolicy_googleapis_com" {
+  project = "634810184515"
+  service = "bigquerydatapolicy.googleapis.com"
+}
+# terraform import google_project_service.bigquerydatapolicy_googleapis_com 634810184515/bigquerydatapolicy.googleapis.com
+resource "google_project_service" "eventarc_googleapis_com" {
+  project = "634810184515"
+  service = "eventarc.googleapis.com"
+}
+# terraform import google_project_service.eventarc_googleapis_com 634810184515/eventarc.googleapis.com
+resource "google_logging_log_sink" "a_default" {
+  destination            = "logging.googleapis.com/projects/spheric-rhythm-414505/locations/global/buckets/_Default"
+  filter                 = "NOT LOG_ID(\"cloudaudit.googleapis.com/activity\") AND NOT LOG_ID(\"externalaudit.googleapis.com/activity\") AND NOT LOG_ID(\"cloudaudit.googleapis.com/system_event\") AND NOT LOG_ID(\"externalaudit.googleapis.com/system_event\") AND NOT LOG_ID(\"cloudaudit.googleapis.com/access_transparency\") AND NOT LOG_ID(\"externalaudit.googleapis.com/access_transparency\")"
+  name                   = "_Default"
+  project                = "634810184515"
+  unique_writer_identity = true
+}
+# terraform import google_logging_log_sink.a_default 634810184515###_Default
+resource "google_project_service" "cloudfunctions_googleapis_com" {
+  project = "634810184515"
+  service = "cloudfunctions.googleapis.com"
+}
+# terraform import google_project_service.cloudfunctions_googleapis_com 634810184515/cloudfunctions.googleapis.com
+resource "google_project_service" "bigquerymigration_googleapis_com" {
+  project = "634810184515"
+  service = "bigquerymigration.googleapis.com"
+}
+# terraform import google_project_service.bigquerymigration_googleapis_com 634810184515/bigquerymigration.googleapis.com
+resource "google_project_service" "bigquerystorage_googleapis_com" {
+  project = "634810184515"
+  service = "bigquerystorage.googleapis.com"
+}
+# terraform import google_project_service.bigquerystorage_googleapis_com 634810184515/bigquerystorage.googleapis.com
+resource "google_project_service" "dataform_googleapis_com" {
+  project = "634810184515"
+  service = "dataform.googleapis.com"
+}
+# terraform import google_project_service.dataform_googleapis_com 634810184515/dataform.googleapis.com
+resource "google_project_service" "pubsub_googleapis_com" {
+  project = "634810184515"
+  service = "pubsub.googleapis.com"
+}
+# terraform import google_project_service.pubsub_googleapis_com 634810184515/pubsub.googleapis.com
+resource "google_project_service" "cloudasset_googleapis_com" {
+  project = "634810184515"
+  service = "cloudasset.googleapis.com"
+}
+# terraform import google_project_service.cloudasset_googleapis_com 634810184515/cloudasset.googleapis.com
+resource "google_project_service" "bigqueryreservation_googleapis_com" {
+  project = "634810184515"
+  service = "bigqueryreservation.googleapis.com"
+}
+# terraform import google_project_service.bigqueryreservation_googleapis_com 634810184515/bigqueryreservation.googleapis.com
+resource "google_project_service" "workflowexecutions_googleapis_com" {
+  project = "634810184515"
+  service = "workflowexecutions.googleapis.com"
+}
+# terraform import google_project_service.workflowexecutions_googleapis_com 634810184515/workflowexecutions.googleapis.com
+resource "google_project_service" "monitoring_googleapis_com" {
+  project = "634810184515"
+  service = "monitoring.googleapis.com"
+}
+# terraform import google_project_service.monitoring_googleapis_com 634810184515/monitoring.googleapis.com
+resource "google_project_service" "gkebackup_googleapis_com" {
+  project = "634810184515"
+  service = "gkebackup.googleapis.com"
+}
+# terraform import google_project_service.gkebackup_googleapis_com 634810184515/gkebackup.googleapis.com
+resource "google_project_service" "storage_api_googleapis_com" {
+  project = "634810184515"
+  service = "storage-api.googleapis.com"
+}
+# terraform import google_project_service.storage_api_googleapis_com 634810184515/storage-api.googleapis.com
+resource "google_project_service" "aiplatform_googleapis_com" {
+  project = "634810184515"
+  service = "aiplatform.googleapis.com"
+}
+# terraform import google_project_service.aiplatform_googleapis_com 634810184515/aiplatform.googleapis.com
+resource "google_project_service" "cloudbuild_googleapis_com" {
+  project = "634810184515"
+  service = "cloudbuild.googleapis.com"
+}
+# terraform import google_project_service.cloudbuild_googleapis_com 634810184515/cloudbuild.googleapis.com
+resource "google_project_service" "osconfig_googleapis_com" {
+  project = "634810184515"
+  service = "osconfig.googleapis.com"
+}
+# terraform import google_project_service.osconfig_googleapis_com 634810184515/osconfig.googleapis.com
+resource "google_storage_bucket" "gcf_v2_uploads_634810184515_us_west2" {
+  cors {
+    method          = ["PUT"]
+    origin          = ["https://*.cloud.google.com", "https://*.corp.google.com", "https://*.corp.google.com:*", "https://*.cloud.google", "https://*.byoid.goog"]
+    response_header = ["content-type"]
+  }
+  force_destroy = false
+  lifecycle_rule {
+    action {
+      type = "Delete"
+    }
+    condition {
+      age        = 1
+      with_state = "ANY"
+    }
+  }
+  location                    = "US-WEST2"
+  name                        = "gcf-v2-uploads-634810184515-us-west2"
+  project                     = "spheric-rhythm-414505"
+  public_access_prevention    = "inherited"
+  storage_class               = "STANDARD"
+  uniform_bucket_level_access = true
+}
+# terraform import google_storage_bucket.gcf_v2_uploads_634810184515_us_west2 gcf-v2-uploads-634810184515-us-west2
+resource "google_project_service" "storageinsights_googleapis_com" {
+  project = "634810184515"
+  service = "storageinsights.googleapis.com"
+}
+# terraform import google_project_service.storageinsights_googleapis_com 634810184515/storageinsights.googleapis.com
+resource "google_storage_bucket" "source_bucket_transcoder" {
+  force_destroy               = false
+  location                    = "US-WEST2"
+  name                        = "source_bucket_transcoder"
+  project                     = "spheric-rhythm-414505"
+  public_access_prevention    = "inherited"
+  storage_class               = "STANDARD"
+  uniform_bucket_level_access = true
+}
+# terraform import google_storage_bucket.source_bucket_transcoder source_bucket_transcoder
+resource "google_project_service" "networkconnectivity_googleapis_com" {
+  project = "634810184515"
+  service = "networkconnectivity.googleapis.com"
+}
+# terraform import google_project_service.networkconnectivity_googleapis_com 634810184515/networkconnectivity.googleapis.com
+resource "google_storage_bucket" "destination_bucket_transcoder_serverfull" {
+  force_destroy               = false
+  location                    = "US-WEST2"
+  name                        = "destination_bucket_transcoder_serverfull"
+  project                     = "spheric-rhythm-414505"
+  public_access_prevention    = "inherited"
+  storage_class               = "STANDARD"
+  uniform_bucket_level_access = true
+}
+# terraform import google_storage_bucket.destination_bucket_transcoder_serverfull destination_bucket_transcoder_serverfull
+resource "google_project_service" "iam_googleapis_com" {
+  project = "634810184515"
+  service = "iam.googleapis.com"
+}
+# terraform import google_project_service.iam_googleapis_com 634810184515/iam.googleapis.com
+resource "google_project_service" "oslogin_googleapis_com" {
+  project = "634810184515"
+  service = "oslogin.googleapis.com"
+}
+# terraform import google_project_service.oslogin_googleapis_com 634810184515/oslogin.googleapis.com
+resource "google_project_service" "storage_component_googleapis_com" {
+  project = "634810184515"
+  service = "storage-component.googleapis.com"
+}
+# terraform import google_project_service.storage_component_googleapis_com 634810184515/storage-component.googleapis.com
+resource "google_project_service" "sql_component_googleapis_com" {
+  project = "634810184515"
+  service = "sql-component.googleapis.com"
+}
+# terraform import google_project_service.sql_component_googleapis_com 634810184515/sql-component.googleapis.com
+resource "google_project_service" "servicemanagement_googleapis_com" {
+  project = "634810184515"
+  service = "servicemanagement.googleapis.com"
+}
+# terraform import google_project_service.servicemanagement_googleapis_com 634810184515/servicemanagement.googleapis.com
+resource "google_project_service" "container_googleapis_com" {
+  project = "634810184515"
+  service = "container.googleapis.com"
+}
+# terraform import google_project_service.container_googleapis_com 634810184515/container.googleapis.com
+resource "google_project_service" "cloudaicompanion_googleapis_com" {
+  project = "634810184515"
+  service = "cloudaicompanion.googleapis.com"
+}
+# terraform import google_project_service.cloudaicompanion_googleapis_com 634810184515/cloudaicompanion.googleapis.com
+resource "google_project_service" "artifactregistry_googleapis_com" {
+  project = "634810184515"
+  service = "artifactregistry.googleapis.com"
+}
+# terraform import google_project_service.artifactregistry_googleapis_com 634810184515/artifactregistry.googleapis.com
+resource "google_storage_bucket" "destination_bucket_transcoder" {
+  force_destroy            = false
+  location                 = "US-WEST2"
+  name                     = "destination_bucket_transcoder"
+  project                  = "spheric-rhythm-414505"
+  public_access_prevention = "inherited"
+  storage_class            = "STANDARD"
+}
+# terraform import google_storage_bucket.destination_bucket_transcoder destination_bucket_transcoder
+resource "google_storage_bucket" "gcf_v2_sources_634810184515_us_west2" {
+  cors {
+    method = ["GET"]
+    origin = ["https://*.cloud.google.com", "https://*.corp.google.com", "https://*.corp.google.com:*", "https://*.cloud.google", "https://*.byoid.goog"]
+  }
+  force_destroy = false
+  lifecycle_rule {
+    action {
+      type = "Delete"
+    }
+    condition {
+      num_newer_versions = 3
+      with_state         = "ARCHIVED"
+    }
+  }
+  location                    = "US-WEST2"
+  name                        = "gcf-v2-sources-634810184515-us-west2"
+  project                     = "spheric-rhythm-414505"
+  public_access_prevention    = "inherited"
+  storage_class               = "STANDARD"
+  uniform_bucket_level_access = true
+  versioning {
+    enabled = true
+  }
+}
+# terraform import google_storage_bucket.gcf_v2_sources_634810184515_us_west2 gcf-v2-sources-634810184515-us-west2
+resource "google_project_service" "iamcredentials_googleapis_com" {
+  project = "634810184515"
+  service = "iamcredentials.googleapis.com"
+}
+# terraform import google_project_service.iamcredentials_googleapis_com 634810184515/iamcredentials.googleapis.com
+resource "google_project_service" "containeranalysis_googleapis_com" {
+  project = "634810184515"
+  service = "containeranalysis.googleapis.com"
+}
+# terraform import google_project_service.containeranalysis_googleapis_com 634810184515/containeranalysis.googleapis.com
+resource "google_storage_bucket" "sample_bucket_transcoder" {
+  force_destroy            = false
+  location                 = "US-WEST2"
+  name                     = "sample_bucket_transcoder"
+  project                  = "spheric-rhythm-414505"
+  public_access_prevention = "inherited"
+  storage_class            = "STANDARD"
+}
+# terraform import google_storage_bucket.sample_bucket_transcoder sample_bucket_transcoder
+resource "google_project_service" "workflows_googleapis_com" {
+  project = "634810184515"
+  service = "workflows.googleapis.com"
+}
+# terraform import google_project_service.workflows_googleapis_com 634810184515/workflows.googleapis.com
+resource "google_project_service" "serviceusage_googleapis_com" {
+  project = "634810184515"
+  service = "serviceusage.googleapis.com"
+}
+# terraform import google_project_service.serviceusage_googleapis_com 634810184515/serviceusage.googleapis.com
+resource "google_project_service" "datastore_googleapis_com" {
+  project = "634810184515"
+  service = "datastore.googleapis.com"
+}
+# terraform import google_project_service.datastore_googleapis_com 634810184515/datastore.googleapis.com
+resource "google_project_service" "run_googleapis_com" {
+  project = "634810184515"
+  service = "run.googleapis.com"
+}
+# terraform import google_project_service.run_googleapis_com 634810184515/run.googleapis.com
+resource "google_project_service" "logging_googleapis_com" {
+  project = "634810184515"
+  service = "logging.googleapis.com"
+}
+# terraform import google_project_service.logging_googleapis_com 634810184515/logging.googleapis.com
+resource "google_project_service" "storage_googleapis_com" {
+  project = "634810184515"
+  service = "storage.googleapis.com"
+}
+# terraform import google_project_service.storage_googleapis_com 634810184515/storage.googleapis.com
+
+Export complete.
+jeril@JKB-HACKBOX:/mnt/c/Users/jeril$
+jeril@JKB-HACKBOX:/mnt/c/Users/jeril$
