@@ -57,6 +57,7 @@ Files required (inside containerapp):
 - Dockerfile
 - app.py
 - requirement.txt
+- setup.sh
 
 Tools (install them):
 - WSL/Linux OS (you can do it in Powershell but my steps need to be changed to Powershell commands)
