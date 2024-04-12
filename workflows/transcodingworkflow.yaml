@@ -1,0 +1,51 @@
+main:
+  params: [event]
+  steps:
+    - log_event:
+        call: sys.log
+        args:
+          text: ${event}
+          severity: INFO
+    - extract_event_data:
+        assign:
+          - bucket: ${event.data.bucket}
+          - object: ${event.data.name}
+          - contentType: ${event.data.contentType}
+    - check_content_type:
+        switch:
+            - condition: ${not text.match_regex(contentType, "video") and not text.match_regex(contentType, "octet-stream")}
+              return: ${"Media " + contentType + " not valid."}
+              next: prep_transcoding_job
+    - prep_transcoding_job:
+        assign:
+          - jobId: ${"transcoding-" + uuid.generate()}
+          - gcsDestination: ${sys.get_env("GCS_DESTINATION")}
+        next: send_parallel_requests
+    - send_parallel_requests:
+        parallel:
+          shared: [jobId, object]
+          branches:
+            - serverless:
+                steps:
+                  - send_first_request:
+                      call: http.post
+                      args:
+                        url: https://myapp-3nwh2m4zca-wl.a.run.app/execute
+                        body:
+                          jobId: ${jobId}
+                          object: ${object}
+                        headers:
+                          Content-Type: application/json
+            - serverfull:
+                steps:
+                  - send_third_request:
+                      call: http.post
+                      args:
+                        url: http://34.36.30.26/execute
+                        body:
+                          jobId: ${jobId}
+                          object: ${object}
+                        headers:
+                          Content-Type: application/json
+    - finish:
+        return: ${"Transcoding job requests sent for " + object}
