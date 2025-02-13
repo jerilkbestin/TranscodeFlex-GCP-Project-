@@ -1,7 +1,7 @@
 # TranscodeFlex-GCP-Project
 
 Hi Folks, 
-Here I bring you TranscodeFlex, a video transcoding Application that uses event-driven invocation for its service to run. It is deployed in GCP and has both serverless and serverfull designs.
+Here I bring you TranscodeFlex, a video transcoding Application that uses event-driven invocation for its service to run. It is deployed in GCP and has both serverless and serverfull designs. The aim of the design is to compare the performance between the two based on response time.
 
 The design:
 ![Screenshot 2024-04-11 224206](https://github.com/jerilkbestin/TranscodeFlex-GCP-Project-/assets/38150358/9ab143d7-0a1f-487b-8977-c262046a79f6)
