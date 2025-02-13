@@ -1,7 +1,7 @@
 # TranscodeFlex-GCP-Project
 
 Hi Folks, 
-Here I bring you TranscodeFlex, a video transcoding Application that uses event-driven invocation for its service to run. It is deployed in GCP and has both serverless and serverfull designs.a
+Here I bring you TranscodeFlex, a video transcoding Application that uses event-driven invocation for its service to run. It is deployed in GCP and has both serverless and serverfull designs.
 
 The design:
 ![Screenshot 2024-04-11 224206](https://github.com/jerilkbestin/TranscodeFlex-GCP-Project-/assets/38150358/9ab143d7-0a1f-487b-8977-c262046a79f6)
@@ -116,3 +116,5 @@ Upload container image to artifact registry:
 
 
 Reference: https://medium.com/google-cloud/event-driven-ffmpeg-transcoding-a-modern-solution-with-gcp-42995d5c3dbb 
+
+**Please note this repo is not complete with all the components. It cannot be used to replicate. The repo is only for reference.**
